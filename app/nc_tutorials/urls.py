@@ -23,3 +23,4 @@ urlpatterns = [
     path('', include('tutorials.urls')),
     path('', include('users.urls'))
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+# ^ TASK 4 append static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) to urlpatterns
