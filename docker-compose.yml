@@ -1,9 +1,9 @@
 version: "3.8"
 services:
   web:
+    container_name: workshop_app
     build: ./app
-    image: <ecr-repository-uri>:workshop2_web
-    # ^ TASK 5 image: <ecr-repository-uri>:workshop2_web
+    image: ${IMAGE_REGISTRY}/workshop2:workshop2_web
     command: gunicorn nc_tutorials.wsgi:application --bind 0.0.0.0:8000
     volumes:
       - ./app/:/usr/src/app/
@@ -11,20 +11,32 @@ services:
     expose:
       - 8000
     environment:
-      - DB_NAME=nc_tutorials_db
-      - DB_USER=postgres
-      - DB_PASSWORD=admin123
-      - DB_HOST=<rds-instance-endpoint>
-       # ^ TASK 5 DB_HOST=<rds-instance-endpoint>
-      - DB_PORT=5432
-      - DATABASE=postgres
-      - VIRTUAL_HOST=<ec2-instance-dns-address>
-       # ^ TASK 5 VIRTUAL_HOST=<ec2-instance-dns-address>
-      - VIRTUAL_PORT=8000
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DATABASE=${DATABASE}
+      - VIRTUAL_HOST=${VIRTUAL_HOST}
+      - VIRTUAL_PORT=${VIRTUAL_PORT}
+  pg:
+    container_name: workshop_pg
+    image: postgres:13.2-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data:/data
+      - ./data/misc/django_init.sql:/docker-entrypoint-initdb.d/1-django-init.sql
   nginx:
+    container_name: workshop_nginx
     build: ./nginx
-    image: <ecr-repository-uri>:workshop2_nginx
-     # ^ TASK 5 image: <ecr-repository-uri>:workshop2_web
+    image: ${IMAGE_REGISTRY}/workshop2:workshop2_nginx
     volumes:
       - static_volume:/usr/src/app/static
     ports:
